@@ -41,14 +41,21 @@ class UnitConverterViewModel : ViewModel() {
         Unit("Miles", 1609.34, UnitCategory.Length),
         Unit("Kilometers", 1000.0, UnitCategory.Length),
         Unit("Inches", 0.0254, UnitCategory.Length),
-        Unit("Yards", 0.9144, UnitCategory.Length)
+        Unit("Yards", 0.9144, UnitCategory.Length),
+        Unit("Kilograms", 1.0, UnitCategory.Weight),
+        Unit("Grams", 0.001, UnitCategory.Weight),
+        Unit("Pounds", 0.453592, UnitCategory.Weight),
+        Unit("Ounces", 0.0283495, UnitCategory.Weight),
+        Unit("Litres", 1.0, UnitCategory.Volume),
+        Unit("Millilitres", 0.001, UnitCategory.Volume),
+        Unit("Gallons", 3.78541, UnitCategory.Volume)
     )
 
-    private val _inputUnit = mutableStateOf(allUnits.first { it.category == _selectedCategory.value })
+    private val _inputUnit = mutableStateOf(allUnits.firstOrNull { it.category == UnitCategory.Length } ?: Unit("Meters", 1.0, UnitCategory.Length))
     val inputUnit: Unit
         get() = _inputUnit.value
 
-    private val _outputUnit = mutableStateOf(allUnits.first { it.category == _selectedCategory.value })
+    private val _outputUnit = mutableStateOf(allUnits.firstOrNull { it.category == UnitCategory.Length } ?: Unit("Meters", 1.0, UnitCategory.Length))
     val outputUnit: Unit
         get() = _outputUnit.value
 
@@ -71,8 +78,8 @@ class UnitConverterViewModel : ViewModel() {
 
     fun setSelectedCategory(category: UnitCategory) {
         _selectedCategory.value = category
-        _inputUnit.value = allUnits.first { it.category == _selectedCategory.value }
-        _outputUnit.value = allUnits.first { it.category == _selectedCategory.value }
+        _inputUnit.value = allUnits.firstOrNull { it.category == category } ?: Unit("Meters", 1.0, UnitCategory.Length)
+        _outputUnit.value = allUnits.firstOrNull { it.category == category } ?: Unit("Meters", 1.0, UnitCategory.Length)
         _outputValue.value = ""
         _isCategoryExpanded.value = false
     }
