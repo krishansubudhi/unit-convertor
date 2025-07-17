@@ -51,11 +51,27 @@ class UnitConverterViewModel : ViewModel() {
         Unit("Gallons", 3.78541, UnitCategory.Volume)
     )
 
-    private val _inputUnit = mutableStateOf(allUnits.firstOrNull { it.category == UnitCategory.Length } ?: Unit("Meters", 1.0, UnitCategory.Length))
+    private fun getDefaultInputUnit(category: UnitCategory): Unit {
+        return when (category) {
+            UnitCategory.Length -> allUnits.firstOrNull { it.name == "Miles" && it.category == UnitCategory.Length } ?: Unit("Miles", 1609.34, UnitCategory.Length)
+            UnitCategory.Weight -> allUnits.firstOrNull { it.name == "Pounds" && it.category == UnitCategory.Weight } ?: Unit("Pounds", 0.453592, UnitCategory.Weight)
+            UnitCategory.Volume -> allUnits.firstOrNull { it.name == "Gallons" && it.category == UnitCategory.Volume } ?: Unit("Gallons", 3.78541, UnitCategory.Volume)
+        }
+    }
+
+    private fun getDefaultOutputUnit(category: UnitCategory): Unit {
+        return when (category) {
+            UnitCategory.Length -> allUnits.firstOrNull { it.name == "Kilometers" && it.category == UnitCategory.Length } ?: Unit("Kilometers", 1000.0, UnitCategory.Length)
+            UnitCategory.Weight -> allUnits.firstOrNull { it.name == "Kilograms" && it.category == UnitCategory.Weight } ?: Unit("Kilograms", 1.0, UnitCategory.Weight)
+            UnitCategory.Volume -> allUnits.firstOrNull { it.name == "Millilitres" && it.category == UnitCategory.Volume } ?: Unit("Millilitres", 0.001, UnitCategory.Volume)
+        }
+    }
+
+    private val _inputUnit = mutableStateOf(getDefaultInputUnit(_selectedCategory.value))
     val inputUnit: Unit
         get() = _inputUnit.value
 
-    private val _outputUnit = mutableStateOf(allUnits.firstOrNull { it.category == UnitCategory.Length } ?: Unit("Meters", 1.0, UnitCategory.Length))
+    private val _outputUnit = mutableStateOf(getDefaultOutputUnit(_selectedCategory.value))
     val outputUnit: Unit
         get() = _outputUnit.value
 
@@ -78,8 +94,8 @@ class UnitConverterViewModel : ViewModel() {
 
     fun setSelectedCategory(category: UnitCategory) {
         _selectedCategory.value = category
-        _inputUnit.value = allUnits.firstOrNull { it.category == category } ?: Unit("Meters", 1.0, UnitCategory.Length)
-        _outputUnit.value = allUnits.firstOrNull { it.category == category } ?: Unit("Meters", 1.0, UnitCategory.Length)
+        _inputUnit.value = getDefaultInputUnit(category)
+        _outputUnit.value = getDefaultOutputUnit(category)
         _outputValue.value = ""
         _isCategoryExpanded.value = false
     }
