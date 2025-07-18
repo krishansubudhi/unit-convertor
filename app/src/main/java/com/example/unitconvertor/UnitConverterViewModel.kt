@@ -135,6 +135,13 @@ class UnitConverterViewModel : ViewModel() {
         _outputValue.value = String.format("%.2f", convertedValue)
     }
 
+    fun swapUnits() {
+        val currentInput = _inputUnit.value
+        _inputUnit.value = _outputUnit.value
+        _outputUnit.value = currentInput
+        convertUnits()
+    }
+
     val unitsForCategory: List<Unit>
         get() = allUnits.filter { it.category == _selectedCategory.value }
 

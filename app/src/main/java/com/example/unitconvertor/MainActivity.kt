@@ -10,12 +10,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding // Import imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions // Import KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions // Import KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,6 +38,12 @@ import androidx.compose.ui.unit.dp
 import com.example.unitconvertor.ui.theme.UnitConvertorTheme
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType // Import KeyboardType
+import androidx.compose.ui.text.input.ImeAction // Import ImeAction
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController // Import LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController // Import SoftwareKeyboardController
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,27 +63,35 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun UnitConverterScreen(modifier: Modifier = Modifier, unitConverterViewModel: UnitConverterViewModel = viewModel(factory = UnitConverterViewModel.Factory)) {
+  val keyboardController = LocalSoftwareKeyboardController.current // Obtain KeyboardController
 
   Column(
-    modifier = modifier.fillMaxSize().padding(16.dp),
+    modifier = modifier.fillMaxSize().padding(32.dp).imePadding(), // Added imePadding()
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    Text(text = "Unit Converter")
-    Spacer(modifier = Modifier.height(16.dp))
+    Text(
+      text = "Unit Converter",
+      style = MaterialTheme.typography.headlineLarge,
+      modifier = Modifier.padding(bottom = 24.dp)
+    )
 
     // Category Selection
-    Box {
-      Button(onClick = { unitConverterViewModel.toggleCategoryExpanded() }) {
-        Text(text = unitConverterViewModel.selectedCategory.name)
+    Box(modifier = Modifier.fillMaxWidth()) {
+      FilledTonalButton(
+        onClick = { unitConverterViewModel.toggleCategoryExpanded() },
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Text(text = unitConverterViewModel.selectedCategory.name, fontSize = 20.sp)
       }
       DropdownMenu(
         expanded = unitConverterViewModel.isCategoryExpanded,
-        onDismissRequest = { unitConverterViewModel.toggleCategoryExpanded() }
+        onDismissRequest = { unitConverterViewModel.toggleCategoryExpanded() },
+        modifier = Modifier.fillMaxWidth()
       ) {
         UnitCategory.entries.forEach { category ->
           DropdownMenuItem(
-            text = { Text(category.name) },
+            text = { Text(category.name, fontSize = 20.sp) },
             onClick = {
               unitConverterViewModel.setSelectedCategory(category)
             }
@@ -74,29 +99,40 @@ fun UnitConverterScreen(modifier: Modifier = Modifier, unitConverterViewModel: U
         }
       }
     }
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(24.dp))
 
     OutlinedTextField(
       value = unitConverterViewModel.inputValue,
       onValueChange = { unitConverterViewModel.setInputValue(it) },
-      label = { Text("Enter Value") }
+      label = { Text("Enter Value", fontSize = 20.sp) },
+      textStyle = TextStyle(fontSize = 20.sp),
+      modifier = Modifier.fillMaxWidth(),
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), // Set numeric keyboard and IME action
+      keyboardActions = KeyboardActions(onDone = { // Handle enter key
+        unitConverterViewModel.convertUnits()
+        keyboardController?.hide()
+      })
     )
-    Spacer(modifier = Modifier.height(16.dp))
-    Row {
-      Box {
-        Button(
+    Spacer(modifier = Modifier.height(24.dp))
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+      Box(modifier = Modifier.weight(1f)) {
+        FilledTonalButton(
           onClick = { unitConverterViewModel.toggleInputExpanded() },
-          modifier = Modifier.testTag("input_unit_dropdown")
+          modifier = Modifier.fillMaxWidth().testTag("input_unit_dropdown")
         ) {
-          Text(text = unitConverterViewModel.inputUnit.name)
+          Text(text = unitConverterViewModel.inputUnit.name, fontSize = 20.sp)
         }
         DropdownMenu(
           expanded = unitConverterViewModel.isInputExpanded,
-          onDismissRequest = { unitConverterViewModel.toggleInputExpanded() }
+          onDismissRequest = { unitConverterViewModel.toggleInputExpanded() },
+          modifier = Modifier.fillMaxWidth()
         ) {
           unitConverterViewModel.unitsForCategory.forEach { unit ->
             DropdownMenuItem(
-              text = { Text(unit.name) },
+              text = { Text(unit.name, fontSize = 20.sp) },
               onClick = {
                 unitConverterViewModel.setInputUnit(unit)
               },
@@ -106,20 +142,32 @@ fun UnitConverterScreen(modifier: Modifier = Modifier, unitConverterViewModel: U
         }
       }
       Spacer(modifier = Modifier.width(16.dp))
-      Box {
-        Button(
+      Button(
+        onClick = { unitConverterViewModel.swapUnits() },
+        modifier = Modifier.testTag("swap_units_button")
+      ) {
+        Icon(
+          imageVector = Icons.Default.SwapHoriz,
+          contentDescription = "Swap Units",
+          modifier = Modifier.size(24.dp)
+        )
+      }
+      Spacer(modifier = Modifier.width(16.dp))
+      Box(modifier = Modifier.weight(1f)) {
+        FilledTonalButton(
           onClick = { unitConverterViewModel.toggleOutputExpanded() },
-          modifier = Modifier.testTag("output_unit_dropdown")
+          modifier = Modifier.fillMaxWidth().testTag("output_unit_dropdown")
         ) {
-          Text(text = unitConverterViewModel.outputUnit.name)
+          Text(text = unitConverterViewModel.outputUnit.name, fontSize = 20.sp)
         }
         DropdownMenu(
           expanded = unitConverterViewModel.isOutputExpanded,
-          onDismissRequest = { unitConverterViewModel.toggleOutputExpanded() }
+          onDismissRequest = { unitConverterViewModel.toggleOutputExpanded() },
+          modifier = Modifier.fillMaxWidth()
         ) {
           unitConverterViewModel.unitsForCategory.forEach { unit ->
             DropdownMenuItem(
-              text = { Text(unit.name) },
+              text = { Text(unit.name, fontSize = 20.sp) },
               onClick = {
                 unitConverterViewModel.setOutputUnit(unit)
               },
@@ -129,12 +177,18 @@ fun UnitConverterScreen(modifier: Modifier = Modifier, unitConverterViewModel: U
         }
       }
     }
-    Spacer(modifier = Modifier.height(16.dp))
-    Button(onClick = { unitConverterViewModel.convertUnits() }) {
-      Text(text = "Convert")
+    Spacer(modifier = Modifier.height(24.dp))
+    ElevatedButton(
+      onClick = { unitConverterViewModel.convertUnits() },
+      modifier = Modifier.fillMaxWidth()
+    ) {
+      Text(text = "Convert", fontSize = 24.sp)
     }
-    Spacer(modifier = Modifier.height(16.dp))
-    Text(text = "Result: ${unitConverterViewModel.outputValue}")
+    Spacer(modifier = Modifier.height(24.dp))
+    Text(
+      text = "Result: ${unitConverterViewModel.outputValue}",
+      style = MaterialTheme.typography.headlineMedium
+    )
   }
 }
 
